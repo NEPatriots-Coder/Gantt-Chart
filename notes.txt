@@ -1,0 +1,65 @@
+import json
+import uuid
+# import boto3  # Uncomment if you plan to use DynamoDB
+
+# Uncomment and configure if using DynamoDB
+# dynamodb = boto3.resource('dynamodb')
+# table = dynamodb.Table('TasksTable')
+
+def lambda_handler(event, context):
+    http_method = event.get("httpMethod", "")
+
+    # For debugging: print the event so you can see how API Gateway is sending data
+    print("Received event:", event)
+
+    if http_method == 'GET':
+        # Example: Return a fixed list of tasks or retrieve from a database
+        tasks = [
+            {"id": "1", "task": "Sample Task", "status": "Not Started"}
+        ]
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"tasks": tasks})
+        }
+
+    elif http_method == 'POST':
+        # Get the task data from the request body
+        body = json.loads(event.get('body', '{}'))
+        new_task = {
+            "id": str(uuid.uuid4()),  # Generate a unique task ID
+            "task": body.get("task", ""),
+            "status": body.get("status", "Not Started")
+        }
+        # Optionally, store the new task in a database like DynamoDB:
+        # table.put_item(Item=new_task)
+
+        return {
+            "statusCode": 201,
+            "body": json.dumps(new_task)
+        }
+
+    elif http_method == 'PUT':
+        # Get the task id from path parameters (assuming your API Gateway is set up accordingly)
+        task_id = event.get("pathParameters", {}).get("id")
+        body = json.loads(event.get('body', '{}'))
+        # Here you would update the task in your database
+        # For now, simply return a success message
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"message": "Task updated successfully", "id": task_id})
+        }
+
+    elif http_method == 'DELETE':
+        # Get the task id from path parameters to delete the task
+        task_id = event.get("pathParameters", {}).get("id")
+        # Delete the task from your database here
+        return {
+            "statusCode": 204,
+            "body": json.dumps({"message": "Task deleted successfully"})
+        }
+
+    else:
+        return {
+            "statusCode": 400,
+            "body": json.dumps({"message": "Unsupported HTTP method"})
+        }
